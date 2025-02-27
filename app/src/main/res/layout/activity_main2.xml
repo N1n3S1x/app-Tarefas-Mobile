@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main2"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".MainActivity2">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtTelaAtualizacao"
+        android:text="Tela de Atualização"
+        android:textSize="26sp"
+        android:textColor="@color/black"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:layout_marginBottom="@android:dimen/app_icon_size"
+
+        />
+
+    <EditText
+        android:id="@+id/editTextTarefa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Digite uma tarefa"
+        android:layout_marginBottom="@android:dimen/app_icon_size"
+        />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtDataHora"
+        android:text="Data e Hora"
+        android:textSize="26sp"
+        android:textColor="@color/black"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+
+        />
+
+    <TextView
+        android:id="@+id/receberDataHora"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:onClick="_pegarDataHoraAtt"
+        android:padding="8dp"
+        android:text="Receber Data e Hora"
+        android:textColor="#FF4081"
+        android:textSize="26sp" />
+
+
+
+
+    <Button
+        android:id="@+id/botaoAtualizar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Atulizar Tarefa!"
+        android:layout_marginTop="@android:dimen/app_icon_size"
+        />
+
+    <Button
+        android:id="@+id/botaoExcluir"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Excluir Tarefa!"
+        android:onClick="_excluirTarefa"
+        android:layout_marginTop="@android:dimen/app_icon_size"
+        />
+
+
+
+</LinearLayout>
