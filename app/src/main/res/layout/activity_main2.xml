@@ -58,7 +58,7 @@
 
 
     <Button
-        android:id="@+id/botaoAtualizar"
+        android:id="@+id/btnAtualizar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Atulizar Tarefa!"
@@ -66,11 +66,11 @@
         />
 
     <Button
-        android:id="@+id/botaoExcluir"
+        android:id="@+id/btnExcluir"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Excluir Tarefa!"
-        android:onClick="_excluirTarefa"
+
         android:layout_marginTop="@android:dimen/app_icon_size"
         />
 

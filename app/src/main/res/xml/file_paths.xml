@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Permite acessar arquivos em 'getExternalFilesDir()' -->
+    <external-files-path
+        name="tarefa_files"
+        path="." />
+</paths>

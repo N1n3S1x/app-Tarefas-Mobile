@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import java.util.ArrayList;
 import java.io.File;
@@ -40,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> adaptador;
     private TextView campoDataHora;
     private SQLiteDatabase bancoDeDados;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +87,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == RESULT_OK) { // ✅ Verifica se veio da MainActivity2
+            int id = data.getIntExtra("id", 0);
+            String tarefaAtualizada = data.getStringExtra("tarefa");
+            String dataHoraAtualizada = data.getStringExtra("dataHora");
+
+            // Atualiza os dados no banco ou na interface
+            carregarTarefas();
+        }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        carregarTarefas(); // Recarrega a lista sempre que voltar para MainActivity
+    }
+
     public void criarBancoDeDados() {
         try {
             bancoDeDados = openOrCreateDatabase("ListaTarefasApp", MODE_PRIVATE, null);
@@ -105,12 +127,16 @@ public class MainActivity extends AppCompatActivity {
             stmt.bindString(1, tarefa);
             stmt.bindString(2, dataHora);
             stmt.bindString(3, "1"); //status de ativo
-            stmt.executeInsert();
+//            stmt.executeInsert();
 
             editTextTarefa.setText("");
             campoDataHora.setText("Data e Hora");
-            Toast.makeText(MainActivity.this, "Tarefa adicionada com sucesso!",
-                    Toast.LENGTH_SHORT).show();
+
+            long id = stmt.executeInsert(); // Pega o ID gerado
+
+
+            // Exibe o ID gerado pelo SQLite
+            Toast.makeText(this, "Tarefa inserida com ID: " + id, Toast.LENGTH_SHORT).show();
 
             carregarTarefas();
 
@@ -184,16 +210,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-//    private void editarTaref(int position) {
-//        try {
-//            bancoDeDados.execSQL("UPDATE FROM tarefas WHERE id = " + ids.get(position));
-//            Toast.makeText(MainActivity.this, "Editar tarefa!",
-//                    Toast.LENGTH_SHORT).show();
-//            carregarTarefas();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 
     private void excluirTarefa(int position) {
         try {
@@ -207,6 +223,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void mudarTelaEdicao(int position) {
+
+        int id = ids.get(position);
+
         try {
 
             Toast.makeText(MainActivity.this, "Editar tarefa!",
@@ -214,12 +233,11 @@ public class MainActivity extends AppCompatActivity {
 
 
             Intent intent = new Intent(MainActivity.this, MainActivity2.class);
-            intent.putExtra("id", ids.get(position));
+            intent.putExtra("id", id);
             intent.putExtra("tarefa", itens.get(position));
             intent.putExtra("dataHora", datasHoras.get(position));
 
-            startActivity(intent);
-//            finish();
+            startActivityForResult(intent, 1);
 
 
         }catch (Exception e) {
@@ -242,19 +260,6 @@ public class MainActivity extends AppCompatActivity {
 
                 .show();
     }
-
-
-//    private void confirmarExclusao(int position) {
-//        new AlertDialog.Builder(MainActivity.this)
-//                .setTitle("Confirmação")
-//                .setMessage("Deseja realmente apagar a tarefa \"" + itens.get(position) + "\"?")
-//                .setPositiveButton("Sim", (dialog, which) -> {
-//                    excluirTarefa(position);
-//                })
-//                .setNegativeButton("Não", null)
-//                .setNeutralButton("Compartilhar", (dialogInterface, i) -> {compartilharTarefa(position);})
-//                .show();
-//    }
 
     private void alternarStatusTarefa(int position) {
         try {
@@ -309,34 +314,53 @@ public class MainActivity extends AppCompatActivity {
         timePickerDialog.show();
     }
 
-    private void compartilharTarefa(int position){
+    private void compartilharTarefa(int position) {
 
-        File arquivoTextoo = new File(getExternalFilesDir(null), "tarefa" + ids.get(position) + ".txt");
+        gerarArquivoTexto(position);
+
+        // Verificar se o arquivo foi criado
+        if (arquivoTexto.exists()) {
+            // Usar FileProvider para obter o URI do arquivo
+            Uri arquivoUri = FileProvider.getUriForFile(MainActivity.this,
+                    "com.example.aula5_listadetarefas.provider", arquivoTexto);
 
 
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("aplication/txt");
-        intent.putExtra(Intent.EXTRA_TEXT, arquivoTextoo.getAbsolutePath());
-        startActivity(Intent.createChooser(intent, "Compartilhar via'"));
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");  // Tipo de arquivo a ser compartilhado
+            intent.putExtra(Intent.EXTRA_STREAM, arquivoUri);  // Usar o URI do arquivo
+
+            // Conceder permissão para a aplicação que receber o arquivo
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+
+            startActivity(Intent.createChooser(intent, "Compartilhar tarefa via"));
+        } else {
+            Toast.makeText(MainActivity.this, "Erro ao gerar o arquivo para compartilhar!", Toast.LENGTH_SHORT).show();
+        }
     }
 
+
     private void gerarArquivoTexto(int position) {
+
         String tarefa = itens.get(position);
         String dataHora = datasHoras.get(position);
 
         String conteudo = "Tarefa: " + tarefa + "\n" +
-                          "\nData e Hora: " + dataHora;
+                "Data e Hora: " + dataHora;
 
         try {
-            File diretorio = getExternalFilesDir(null);
-            arquivoTexto = new File(diretorio, "tarefa" + ids.get(position) + ".txt");
+            // Cria o diretório para armazenar o arquivo, se necessário
+            File diretorio = getExternalFilesDir(null);  // Usando o diretório apropriado para armazenar arquivos
+            arquivoTexto = new File(diretorio, "tarefa_" + ids.get(position) + ".txt");
+
+            // Escrever o conteúdo no arquivo
             FileWriter escritor = new FileWriter(arquivoTexto);
             escritor.write(conteudo);
             escritor.close();
 
-            Toast.makeText(this, "Arquivo gerado em: " + arquivoTexto.getAbsolutePath(),
-                    Toast.LENGTH_LONG).show();
 
+            Toast.makeText(this, "Arquivo gerado com sucesso: " + arquivoTexto.getAbsolutePath(),
+                    Toast.LENGTH_LONG).show();
 
         } catch (IOException e) {
             e.printStackTrace();
